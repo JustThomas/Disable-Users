@@ -48,7 +48,7 @@ final class ja_disable_users {
 		add_filter( 'manage_users_columns',       array( $this, 'manage_users_columns'	      )        );
 		add_filter( 'comment_notification_recipients',     array( $this, 'filter_email_recipients' )   );
 		add_filter( 'comment_moderation_recipients',       array( $this, 'filter_email_recipients' )   );
-
+		add_filter( 'allow_password_reset',       array( $this, 'allow_password_reset'        ), 10, 2 );
 	}
 
 	/**
@@ -232,6 +232,24 @@ final class ja_disable_users {
 		
 		// User exists and is not disabled - send notification emails
 		return true;				
+	}
+	
+	/**
+	 * Whether to allow the password of a user account to be reset
+	 * 
+	 * @param bool $allow Whether to allow password to be reset
+	 * @param int $user_id The ID of the user attempting to reset a password
+	 * @return bool Whether to allow password to be reset 
+	 */
+	public function allow_password_reset( $allow, $user_id ) {
+		$disabled = get_user_meta( $user_id, 'ja_disable_user', true );
+		
+		if ( $disabled ) {
+			// User account is disabled - Don't allow password reset
+			return false;
+		}
+		
+		return $allow;
 	}
 }
 new ja_disable_users();

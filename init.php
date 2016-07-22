@@ -46,6 +46,9 @@ final class ja_disable_users {
 		// Filters
 		add_filter( 'login_message',              array( $this, 'user_login_message'          )        );
 		add_filter( 'manage_users_columns',       array( $this, 'manage_users_columns'	      )        );
+		add_filter( 'comment_notification_recipients',     array( $this, 'filter_email_recipients' )   );
+		add_filter( 'comment_moderation_recipients',       array( $this, 'filter_email_recipients' )   );
+
 	}
 
 	/**
@@ -192,6 +195,43 @@ final class ja_disable_users {
  	 */
 	public function manage_users_css() {
 		echo '<style type="text/css">.column-ja_user_disabled { width: 80px; }</style>';
+	}
+	
+	/**
+	 * Filter an array of email addresses. Decide whether to send comment notification/moderation emails to
+	 * these email addresses. The filtered array only contains email addresses which do not belong to a
+	 * disabled user account.
+	 *
+	 * @param array $emails array of email addresses
+	 * @return array filtered array of email addresses
+	 */
+	public function filter_email_recipients( $emails ) {
+		return array_filter( $emails, array( $this, 'filter_email_recipient' ) );		
+	}
+	
+	/**
+	 * Decide whether to send a comment notification/moderation email to a given email address.
+	 * Checks if a user with this email address exists and if this user account has been disabled.
+	 * 
+	 * @param string $email email address 
+	 * @return bool whether the email address belongs to a disabled user account 
+	 */
+	public function filter_email_recipient( $email ) {
+		$user = get_user_by( 'email', $email );
+		if ( !$user ) {
+			// No user with this email address - we can send notification emails
+			return true;
+		}
+		
+		$disabled = get_user_meta( $user->ID, 'ja_disable_user', true );
+		
+		if ( $disabled == '1' ) {
+			// User is disabled - Don't send notification emails
+			return false;			
+		}
+		
+		// User exists and is not disabled - send notification emails
+		return true;				
 	}
 }
 new ja_disable_users();

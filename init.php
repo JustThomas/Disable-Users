@@ -214,7 +214,7 @@ final class ja_disable_users {
 	 * Checks if a user with this email address exists and if this user account has been disabled.
 	 * 
 	 * @param string $email email address 
-	 * @return bool whether the email address belongs to a disabled user account 
+	 * @return bool whether a notification email should be sent to this email address 
 	 */
 	public function filter_email_recipient( $email ) {
 		$user = get_user_by( 'email', $email );
